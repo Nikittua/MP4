@@ -15,16 +15,15 @@ using namespace std;
 
 string inputFile = "data.txt";
 string outputFile = "output.txt";
-string timeStampsFile = "timestamps.txt";
 
 ofstream fout(outputFile);
 
-const uint sampleSize = 101;
-const uint sampleNumber = 10;
-const uint maxBound = 1 << 20;
+const uint sample1 = 101;
+const uint samples = 10;
+const uint maximum = 1 << 20;
 
-const int batchNum = 6;
-const int dims[batchNum] = { 1000, 5000, 10000, 50000, 100000, 1000000 };
+const int Num = 6;
+const int arr[Num] = { 1000, 5000, 10000, 50000, 100000, 1000000 };
 
 class Mersenne_Twister {
     std::mt19937 mt;
@@ -35,7 +34,7 @@ public:
     }
 
     uint getNumber() {
-        return mt() % maxBound;
+        return mt() % maximum;
     }
 
     vector<uint> getVector(size_t size) {
@@ -61,7 +60,7 @@ public:
         seed ^= (seed << 13);
         seed ^= (seed >> 17);
         seed ^= (seed << 5);
-        return seed % maxBound;
+        return seed % maximum;
     }
 
     vector<uint> getVector(size_t size) {
@@ -99,10 +98,10 @@ double variationCoeff(double deviation, double mean) {
 }
 
 double chiSquare(vector<uint>& vec) {
-    //считается, что в v лежат целые числа, до maxBound, поэтому их надо нормировать
+    //считается, что в v лежат целые числа, до maximum, поэтому их надо нормировать
     vector<double> v;
     for (int i = 0; i < vec.size(); ++i)
-        v.push_back(vec[i] / static_cast<double>(maxBound - 1));
+        v.push_back(vec[i] / static_cast<double>(maximum - 1));
 
     const unsigned int n = v.size();
     const unsigned int k = 1 + 3.322 * log(n);
@@ -152,20 +151,20 @@ int main()
 
     eng.setSeed(time(NULL));
 
-    for (int i = 0; i < sampleNumber; ++i) {
-        vector<uint> v = eng.getVector(sampleSize);
+    for (int i = 0; i < samples; ++i) {
+        vector<uint> v = eng.getVector(sample1);
         writeSampleInfo(v);
     }
 
     start = std::chrono::steady_clock::now();
 
-    for (int i = 0; i < batchNum; ++i) {
+    for (int i = 0; i < Num; ++i) {
         //генерация с засечением времени
-        for (int j = 0; j < dims[i]; ++j)
+        for (int j = 0; j < arr[i]; ++j)
             const uint num = eng.getNumber();
 
         end = std::chrono::steady_clock::now();
-        writeTime("На генерацию " + to_string(dims[i]) + " значений ушло : ", start, end);
+        writeTime("На генерацию " + to_string(arr[i]) + " значений ушло : ", start, end);
         start = end;
     }
 
@@ -175,42 +174,42 @@ int main()
 
     fout << "\nВторой генератор:\n" << '\n';
 
-    for (int i = 0; i < sampleNumber; ++i) {
-        vector<uint> v = eng1.getVector(sampleSize);
+    for (int i = 0; i < samples; ++i) {
+        vector<uint> v = eng1.getVector(sample1);
         writeSampleInfo(v);
     }
 
     start = std::chrono::steady_clock::now();
 
-    for (int i = 0; i < batchNum; ++i) {
+    for (int i = 0; i < Num; ++i) {
         //генерация с засечением времени
-        for (int j = 0; j < dims[i]; ++j)
+        for (int j = 0; j < arr[i]; ++j)
             const uint num = eng1.getNumber();
 
         end = std::chrono::steady_clock::now();
-        writeTime("На генерацию " + to_string(dims[i]) + " значений ушло : ", start, end);
+        writeTime("На генерацию " + to_string(arr[i]) + " значений ушло : ", start, end);
         start = end;
     }
 
     fout << "\nСравнение с mt19937:\n" << '\n';
 
     mt19937 mt_rand(time(0));
-    for (int l = 0; l < sampleNumber; ++l) {
-        vector<uint> vRand(sampleSize, 0);
-        for (int i = 0; i < sampleSize; ++i)
-            vRand[i] = mt_rand() % maxBound;
+    for (int l = 0; l < samples; ++l) {
+        vector<uint> vRand(sample1, 0);
+        for (int i = 0; i < sample1; ++i)
+            vRand[i] = mt_rand() % maximum;
         writeSampleInfo(vRand);
     }
 
     start = std::chrono::steady_clock::now();
 
-    for (int i = 0; i < batchNum; ++i) {
+    for (int i = 0; i < Num; ++i) {
         //генерация с засечением времени
-        for (int j = 0; j < dims[i]; ++j)
+        for (int j = 0; j < arr[i]; ++j)
             const uint num = mt_rand();
 
         end = std::chrono::steady_clock::now();
-        writeTime("На генерацию " + to_string(dims[i]) + " значений ушло : ", start, end);
+        writeTime("На генерацию " + to_string(arr[i]) + " значений ушло : ", start, end);
         start = end;
     }
 
